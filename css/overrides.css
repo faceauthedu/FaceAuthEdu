@@ -1,0 +1,252 @@
+/* Refinamientos de la segunda iteración */
+.contact-form{max-width:480px;margin:30px auto 15px;text-align:left;background:#fff;border:1px solid #f0dfe5;border-radius:18px;padding:20px;box-shadow:0 14px 35px rgba(88,20,47,.06)}
+.contact-form label{display:block;font-size:11px;font-weight:800;margin-bottom:12px}.contact-form input,.contact-form textarea{display:block;width:100%;border:1px solid #e5dce0;border-radius:9px;padding:10px 11px;margin-top:5px;font:inherit;font-size:13px;outline:0;resize:vertical}.contact-form textarea{min-height:86px}.contact-form input:focus,.contact-form textarea:focus{border-color:#e91664;box-shadow:0 0 0 3px #ffe5ee}.contact-form .button{margin-top:4px}.contact-alternatives{display:flex;justify-content:center;gap:18px;margin-bottom:17px}.contact-alternatives a{color:#a6194d;font-size:12px;font-weight:750}
+body>#app>footer{background:#111011;color:#fff;padding:66px max(32px,calc((100vw - 1190px)/2)) 22px}.testimonial-grid footer{background:transparent!important;color:#6d6870!important;padding:0!important}.testimonial-grid footer b{color:#121112!important}
+.verify-camera{border:1px solid #f2a7bf;box-shadow:0 0 0 7px rgba(233,22,100,.06),0 22px 55px rgba(72,12,38,.25)}.scan-overlay{z-index:4;background:rgba(18,17,18,.55);padding:6px 10px;border-radius:999px}
+.interactive-metrics .metric-card{cursor:pointer;transition:transform .2s,box-shadow .2s}.interactive-metrics .metric-card:hover,.interactive-metrics .metric-card.selected{transform:translateY(-5px);box-shadow:0 16px 30px rgba(233,22,100,.14);border-color:#f2a0bc}
+@media(max-width:560px){body>#app>footer{padding:49px 20px 20px}.contact-alternatives{flex-direction:column;gap:8px}}
+
+/* ============================================================
+   Iteración 3 — vida, movimiento y estética
+   ============================================================ */
+
+/* ---- Fondo general con textura sutil y respiración ---- */
+body{background:
+  radial-gradient(760px 420px at 8% -6%, rgba(233,22,100,.05), transparent 60%),
+  radial-gradient(620px 380px at 96% 10%, rgba(255,109,158,.06), transparent 55%),
+  var(--soft,#fbf8f9);
+}
+.hero,.confidence,.features,.metrics,.testimonials,.contact{position:relative}
+.confidence::before,.features::before,.metrics::before,.testimonials::before,.contact::before{
+  content:"";position:absolute;z-index:0;border-radius:50%;pointer-events:none;filter:blur(2px);
+  background:radial-gradient(circle,rgba(233,22,100,.10),rgba(233,22,100,0) 70%);
+  animation:driftBlob 16s ease-in-out infinite;
+}
+.confidence::before{width:340px;height:340px;top:-80px;left:-120px;animation-delay:.2s}
+.features::before{width:280px;height:280px;bottom:-100px;right:-90px;animation-delay:1.4s}
+.metrics::before{width:320px;height:320px;top:-60px;right:6%;animation-delay:.8s}
+.testimonials::before{width:260px;height:260px;bottom:-90px;left:4%;animation-delay:2s}
+.contact::before{width:360px;height:360px;top:-120px;left:50%;transform:translateX(-50%);animation-delay:.5s}
+.confidence>*,.features>*,.metrics>*,.testimonials>*,.contact>*{position:relative;z-index:1}
+@keyframes driftBlob{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(22px,-18px) scale(1.08)}}
+@media(prefers-reduced-motion:reduce){.confidence::before,.features::before,.metrics::before,.testimonials::before,.contact::before{animation:none}}
+
+/* ---- Aparición al hacer scroll ---- */
+.feature-card,.metric-card,.stat-row>div,.testimonial-carousel,.contact-inner{opacity:0;transform:translateY(22px);transition:opacity .6s cubic-bezier(.2,.7,.2,1),transform .6s cubic-bezier(.2,.7,.2,1)}
+.feature-card.in-view,.metric-card.in-view,.stat-row>div.in-view,.testimonial-carousel.in-view,.contact-inner.in-view{opacity:1;transform:translateY(0)}
+.feature-grid .feature-card:nth-child(2){transition-delay:.08s}
+.feature-grid .feature-card:nth-child(3){transition-delay:.16s}
+.metric-grid .metric-card:nth-child(2){transition-delay:.06s}
+.metric-grid .metric-card:nth-child(3){transition-delay:.12s}
+.metric-grid .metric-card:nth-child(4){transition-delay:.18s}
+
+/* ---- Tarjetas con más vida al interactuar ---- */
+.feature-card{transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s}
+.feature-card:hover{transform:translateY(-8px);box-shadow:0 24px 46px rgba(72,12,38,.14)}
+.metric-card{transition:transform .25s,box-shadow .25s,border-color .25s}
+.person-card{transition:transform .2s,box-shadow .2s}
+.person-card:hover{transform:translateY(-4px);box-shadow:0 16px 30px rgba(72,12,38,.10)}
+.button{transition:transform .18s cubic-bezier(.3,.9,.4,1.3),box-shadow .18s,filter .18s}
+.button:hover{transform:translateY(-2px)}
+.button.dark:hover{box-shadow:0 14px 26px rgba(17,17,17,.24)}
+.button.pink:hover{box-shadow:0 14px 26px rgba(233,22,100,.30)}
+.button:active{transform:translateY(0) scale(.98)}
+.button.ghost{background:transparent;border-color:#f0c3d4;color:var(--pink)}
+.button.ghost:hover{background:#fff6f9}
+.heading-actions{display:flex;gap:10px;flex-wrap:wrap}
+
+/* ---- Hero orbs con movimiento ---- */
+.hero-orb.one{animation:driftBlob 14s ease-in-out infinite}
+.hero-orb.two{animation:pulseDot 2.4s ease-in-out infinite}
+@keyframes pulseDot{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:1;transform:scale(1.6)}}
+.scan-beam{animation:beamSweep 2.6s ease-in-out infinite}
+@keyframes beamSweep{0%,100%{top:8%}50%{top:88%}}
+
+/* ---- FaceID-style: cámara de registro/verificación/identificación ---- */
+.camera-shell{box-shadow:inset 0 0 0 1px rgba(255,255,255,.04)}
+.verify-camera,.camera-shell{position:relative}
+
+/* Un solo marco cuadrado-redondeado (squircle) con esquinas animadas — nada de óvalos dobles */
+.face-guide{
+  position:absolute;inset:50% auto auto 50%;width:56%;aspect-ratio:1;
+  transform:translate(-50%,-50%);border:none;border-radius:32px;
+  background:radial-gradient(closest-side,rgba(233,22,100,.05),transparent 72%);
+  transition:transform .3s ease;
+}
+.face-guide i{position:absolute;width:26px;height:26px;border:3px solid var(--pink,#e91664);border-radius:8px;filter:drop-shadow(0 0 6px rgba(233,22,100,.45));animation:bracketBreathe 2.1s ease-in-out infinite}
+.face-guide i:nth-child(1){left:-3px;right:auto;top:-3px;bottom:auto;border-width:3px 0 0 3px;border-radius:8px 0 0 0}
+.face-guide i:nth-child(2){left:auto;right:-3px;top:-3px;bottom:auto;border-width:3px 3px 0 0;border-radius:0 8px 0 0;animation-delay:.15s}
+.face-guide i:nth-child(3){left:auto;right:-3px;top:auto;bottom:-3px;border-width:0 3px 3px 0;border-radius:0 0 8px 0;animation-delay:.3s}
+.face-guide i:nth-child(4){left:-3px;right:auto;top:auto;bottom:-3px;border-width:0 0 3px 3px;border-radius:0 0 0 8px;animation-delay:.45s}
+@keyframes bracketBreathe{0%,100%{transform:scale(1);opacity:.75}50%{transform:scale(1.06);opacity:1}}
+/* Línea de escaneo contenida DENTRO del marco (no cruza todo el video) */
+.face-guide::before{
+  content:"";position:absolute;left:8%;right:8%;height:2px;top:10%;
+  background:linear-gradient(90deg,transparent,var(--pink,#e91664) 45%,var(--pink,#e91664) 55%,transparent);
+  box-shadow:0 0 10px 1px rgba(233,22,100,.6);
+  animation:innerScan 2.4s cubic-bezier(.4,0,.3,1) infinite;
+}
+@keyframes innerScan{0%{top:8%;opacity:.9}50%{top:88%;opacity:.9}51%{opacity:0}52%{top:8%;opacity:0}55%{opacity:.9}100%{top:88%;opacity:.9}}
+/* Estado "listo": brackets en verde, se cierran un poco, deja de parpadear la línea */
+.face-guide.ready{transform:translate(-50%,-50%) scale(1.03)}
+.face-guide.ready i{border-color:#38d68c;animation:none;filter:drop-shadow(0 0 8px rgba(56,214,140,.6))}
+.face-guide.ready::before{animation:none;opacity:0}
+.face-guide.ready::after{
+  content:"";position:absolute;inset:0;border-radius:32px;
+  box-shadow:0 0 0 4px rgba(56,214,140,.18),0 0 30px rgba(56,214,140,.35);
+  animation:readyPulse 1.4s ease-out infinite;
+}
+@keyframes readyPulse{0%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(1.12)}}
+
+.scan-overlay span{display:inline-flex;align-items:center;gap:6px}
+.scan-overlay span::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--pink,#e91664);animation:blinkDot 1.3s ease-in-out infinite}
+@keyframes blinkDot{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(233,22,100,.5)}50%{opacity:.4;box-shadow:0 0 0 4px rgba(233,22,100,0)}}
+.verify-steps div.active i{animation:stepPulse 1.1s ease-in-out infinite}
+@keyframes stepPulse{0%,100%{box-shadow:0 0 0 0 rgba(233,22,100,.35)}50%{box-shadow:0 0 0 7px rgba(233,22,100,0)}}
+.verify-progress i{transition:width .4s cubic-bezier(.3,.8,.3,1);background:linear-gradient(90deg,var(--pink),var(--pink2))}
+.result-round{animation:resultPop .5s cubic-bezier(.2,1.4,.4,1)}
+@keyframes resultPop{0%{transform:scale(.4);opacity:0}70%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+.approve .result-round{animation:resultPop .5s cubic-bezier(.2,1.4,.4,1),ringPulse 1.8s ease-in-out 1}
+@keyframes ringPulse{0%{box-shadow:0 0 0 0 rgba(26,165,107,.35)}70%{box-shadow:0 0 0 22px rgba(26,165,107,0)}100%{box-shadow:0 0 0 0 rgba(26,165,107,0)}}
+.match-box em{transition:width .8s cubic-bezier(.2,.8,.2,1)}
+
+/* ---- Muestras del registro con aparición ---- */
+.sample-thumb{animation:sampleIn .3s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes sampleIn{0%{opacity:0;transform:scale(.7) translateY(6px)}100%{opacity:1;transform:scale(1) translateY(0)}}
+
+/* ---- Identificación 1:N ---- */
+.identify-card .identify-head{display:flex;gap:14px;align-items:flex-start;margin-bottom:18px;text-align:left}
+.identify-card .identify-head p{margin:4px 0 0;color:var(--muted);font-size:13.5px;line-height:1.5}
+.identify-match{display:flex;align-items:center;gap:14px;background:#f3fbf6;border:1px solid #cdeedb;border-radius:14px;padding:14px 16px;margin:18px 0}
+.identify-match .profile-avatar{width:52px;height:52px}
+.identify-match b{display:block;font-size:16px}
+.identify-match span{color:var(--muted);font-size:13px}
+
+/* ---- Iconos sociales del pie (WhatsApp / Instagram / correo) ---- */
+.socials{display:flex;align-items:center;gap:10px;margin-top:22px}
+.socials .social-btn{width:44px;height:44px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;line-height:0;box-sizing:border-box;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.07);color:#fff;transition:transform .2s,background .25s,border-color .25s,box-shadow .25s}
+.social-btn svg{width:22px;height:22px;display:block;flex-shrink:0;stroke-width:1.8;margin:auto}
+.social-btn:hover{transform:translateY(-3px)}
+.social-btn.wa:hover{background:#25D366;border-color:#25D366;box-shadow:0 10px 22px rgba(37,211,102,.35)}
+.social-btn.ig:hover{background:radial-gradient(circle at 30% 110%,#fdf497,#fd5949 30%,#d6249f 60%,#285AEB);border-color:transparent;box-shadow:0 10px 22px rgba(214,36,159,.35)}
+.social-btn.mail:hover{background:conic-gradient(#fbbc04 0deg,#fbbc04 70deg,#34a853 110deg,#34a853 160deg,#4285f4 200deg,#4285f4 250deg,#ea4335 290deg,#ea4335 340deg,#fbbc04 360deg);border-color:transparent;box-shadow:0 10px 22px rgba(66,133,244,.28),0 0 20px rgba(234,67,53,.22)}
+
+/* Centrado estricto de los logotipos del pie. */
+.social-btn .icon{display:block;width:22px;height:22px;margin:0;vertical-align:middle;transform:none}
+.social-btn img{display:block;object-fit:contain}.social-btn.wa img{max-width:26px;max-height:26px}.social-btn.mail img{max-width:27px;max-height:27px}
+
+/* ---- Carrusel de testimonios ---- */
+.carousel-dots{display:flex;justify-content:center;gap:8px;margin-top:16px}
+.carousel-dots button{width:8px;height:8px;border-radius:50%;border:none;background:#e6dde2;padding:0;cursor:pointer;transition:background .25s,transform .25s}
+.carousel-dots button.active{background:var(--pink);transform:scale(1.3)}
+@media(max-width:640px){.carousel-arrow{display:none}}
+
+/* ---- Formulario de contacto: estado de envío ---- */
+.contact-form button[disabled]{opacity:.75;cursor:progress}
+.contact-alternatives a{display:inline-flex;align-items:center;gap:5px}
+
+
+/* ============================================================
+   Iteración 4 — métricas con sentido real + carrusel limpio
+   ============================================================ */
+
+/* ---- Layout de tarjeta de métrica: flujo normal, no absoluto ---- */
+.metric-card{height:auto;min-height:224px;display:flex;flex-direction:column;padding:20px}
+.metric-card h3{position:static;margin:14px 0 2px}
+.metric-card p{position:static;margin:0}
+.metric-visual{flex:1;display:flex;align-items:center;justify-content:center;min-height:104px}
+.metric-empty{color:var(--muted);font-size:12.5px;line-height:1.5;text-align:left}
+
+/* ---- 1) Actividad por sesión: barras reales que crecen al aparecer ---- */
+.session-bars{display:flex;align-items:flex-end;gap:8px;height:96px;width:100%}
+.session-bars i{flex:1;max-width:26px;border-radius:6px 6px 2px 2px;background:#e8e1e4;height:8%;transition:height .8s cubic-bezier(.2,.8,.2,1)}
+.session-bars i:nth-child(1){transition-delay:.02s}.session-bars i:nth-child(2){transition-delay:.08s}.session-bars i:nth-child(3){transition-delay:.14s}
+.session-bars i:nth-child(4){transition-delay:.2s}.session-bars i:nth-child(5){transition-delay:.26s}.session-bars i:nth-child(6){transition-delay:.32s}
+.session-bars i.ok{background:linear-gradient(180deg,#5fe0a3,#22b476)}
+.session-bars i.no{background:linear-gradient(180deg,#f5a0b4,#e9648a)}
+.session-bars i.empty{background:#efe8eb}
+.metric-grid.animate .session-bars i{height:var(--h)}
+
+/* ---- 2) Coincidencias: dona real con conic-gradient animado por JS ---- */
+.match-donut{width:104px;height:104px;border-radius:50%;display:grid;place-items:center;position:relative;
+  background:conic-gradient(var(--pink,#e91664) calc(var(--pct)*1%), #f1e6ea 0);
+  transition:transform .25s;
+}
+.match-donut::before{content:"";position:absolute;inset:11px;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 1px #f1e6ea}
+.match-donut b{position:relative;font-size:17px;font-weight:800}
+
+/* ---- 3) Por grupo: barras horizontales reales, ancho animado ---- */
+.group-bars{width:100%;display:flex;flex-direction:column;gap:12px}
+.group-row{display:grid;grid-template-columns:1fr 2fr auto;align-items:center;gap:10px;font-size:12px}
+.group-row span{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.group-row i{display:block;height:9px;border-radius:99px;background:#f1e6ea;position:relative;overflow:hidden}
+.group-row i::after{content:"";position:absolute;inset:0;width:0;border-radius:99px;background:linear-gradient(90deg,#f2a1b8,var(--pink,#e91664));transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.metric-grid.animate .group-row i::after{width:var(--w)}
+.group-row b{font-weight:800;font-size:12.5px}
+
+/* ---- 4) Seguridad: lista de garantías reales, aparición escalonada ---- */
+.security-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:11px;width:100%}
+.security-list li{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--ink,#171217);opacity:0;transform:translateX(-8px);transition:opacity .5s ease,transform .5s ease;transition-delay:var(--d)}
+.security-list li svg{color:#22b476;flex-shrink:0}
+.metric-grid.animate .security-list li{opacity:1;transform:translateX(0)}
+
+/* ============================================================
+   Carrusel de testimonios — rediseño limpio (visor separado)
+   ============================================================ */
+.testimonial-carousel{max-width:760px;margin:0 auto}
+.carousel-viewport{overflow:hidden;border-radius:20px}
+.testimonial-track{display:flex;transition:transform .5s cubic-bezier(.3,.8,.2,1)}
+.testimonial-slide{flex:0 0 100%;width:100%;box-sizing:border-box;box-shadow:0 18px 40px rgba(72,12,38,.08);border:1px solid #f0e6ea;border-radius:20px;padding:44px 46px 32px;background:linear-gradient(175deg,#fff,#fffaf9 88%);text-align:left;position:relative}
+.quote-mark{position:absolute;top:14px;right:26px;font-size:64px;line-height:1;font-family:Georgia,serif;color:#f6dbe4;font-weight:700}
+.testimonial-slide p{font-size:16.5px;line-height:1.65;min-height:80px;margin:14px 0 22px;position:relative;z-index:1}
+.testimonial-slide footer{display:flex;align-items:center;gap:12px}
+.testimonial-slide footer b{display:block;font-size:14px}
+.testimonial-slide footer span{display:block;color:var(--muted);font-size:12.5px}
+.carousel-controls{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:22px}
+.carousel-dots{display:flex;gap:8px}
+.carousel-dots button{width:8px;height:8px;border-radius:50%;border:none;background:#e6dde2;padding:0;cursor:pointer;transition:background .25s,transform .25s}
+.carousel-dots button.active{background:var(--pink);transform:scale(1.3)}
+.carousel-arrow{position:static;width:38px;height:38px;border-radius:50%;border:1px solid #ece4e8;background:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 6px 14px rgba(72,12,38,.08);transition:background .2s,transform .2s,color .2s}
+.carousel-arrow:hover{background:var(--pink);color:#fff;border-color:var(--pink);transform:scale(1.07)}
+.carousel-arrow.prev svg{transform:rotate(0deg)}
+.carousel-arrow.next svg{transform:rotate(180deg)}
+@media(max-width:640px){.testimonial-slide{padding:32px 24px 26px}.quote-mark{font-size:48px;right:18px}}
+
+/* ---- Iconos sociales del pie: tamaño/alineación consistentes ---- */
+
+/* ============================================================
+   Iteración 5 — correcciones finales
+   ============================================================ */
+
+/* ---- Firma de autor en testimonios, sin caja de <footer> (evita el fondo negro global) ---- */
+.slide-author{display:flex;align-items:center;gap:12px;margin-top:6px}
+.slide-author b{display:block;font-size:14px}
+.slide-author span{display:block;color:var(--muted);font-size:12.5px;margin-top:1px}
+.testimonial-slide .quote-avatar{position:static;flex-shrink:0}
+
+/* ---- Iconos sociales del pie: más espacio, relleno tenue para que se vean sólidos ---- */
+
+/* ---- Ilustración con sentido: mapa de puntos faciales (reemplaza las formas random) ---- */
+.landmark-art{display:flex;align-items:center;justify-content:center}
+.landmark-svg{width:78%;max-width:230px;height:auto}
+.mesh-face{fill:rgba(233,22,100,.05);stroke:rgba(233,22,100,.35);stroke-width:1.5;stroke-dasharray:4 4}
+.mesh-lines line{stroke:rgba(233,22,100,.45);stroke-width:1.2;stroke-dasharray:220;stroke-dashoffset:220;animation:drawMesh 1.8s ease forwards}
+.mesh-points circle{fill:var(--pink,#e91664);opacity:0;animation:popPoint .4s ease forwards, dotPulse 2.4s ease-in-out 2s infinite}
+.mesh-lines line:nth-child(1){animation-delay:.05s}.mesh-lines line:nth-child(2){animation-delay:.12s}.mesh-lines line:nth-child(3){animation-delay:.19s}
+.mesh-lines line:nth-child(4){animation-delay:.26s}.mesh-lines line:nth-child(5){animation-delay:.33s}.mesh-lines line:nth-child(6){animation-delay:.4s}
+.mesh-lines line:nth-child(7){animation-delay:.47s}.mesh-lines line:nth-child(8){animation-delay:.54s}.mesh-lines line:nth-child(9){animation-delay:.61s}
+.mesh-lines line:nth-child(10){animation-delay:.68s}.mesh-lines line:nth-child(11){animation-delay:.75s}
+.mesh-points circle:nth-child(1){animation-delay:.9s,3.3s}.mesh-points circle:nth-child(2){animation-delay:.95s,3.4s}
+.mesh-points circle:nth-child(3){animation-delay:1s,3.5s}.mesh-points circle:nth-child(4){animation-delay:1.05s,3.6s}
+.mesh-points circle:nth-child(5){animation-delay:1.1s,3.7s}.mesh-points circle:nth-child(6){animation-delay:1.15s,3.8s}
+.mesh-points circle:nth-child(7){animation-delay:1.2s,3.9s}.mesh-points circle:nth-child(8){animation-delay:1.25s,4s}
+@keyframes drawMesh{to{stroke-dashoffset:0}}
+@keyframes popPoint{to{opacity:1}}
+@keyframes dotPulse{0%,100%{r:4;opacity:1}50%{r:6;opacity:.55}}
+.landmark-art .art-label{display:flex;align-items:center;gap:6px}
+
+/* ---- Indicador visible de la prueba de vida (para ver en tiempo real que está midiendo) ---- */
+.liveness-meter{margin:4px 0 14px;text-align:left}
+.liveness-meter span{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.liveness-meter i{display:block;height:6px;border-radius:99px;background:#efe6ea;overflow:hidden}
+.liveness-meter i em{display:block;height:100%;width:0%;border-radius:99px;background:linear-gradient(90deg,#f2a1b8,#22b476);transition:width .25s linear}
