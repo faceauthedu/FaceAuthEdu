@@ -1,4 +1,3 @@
-data/people/*
-!data/people/.gitkeep
 node_modules/
 .env
+.vercel
