@@ -97,75 +97,148 @@ const Engine = (() => {
 })();
 
 /* ============================================================
-   Almacén de identidades — IndexedDB del navegador.
-   Funciona igual en local y en Vercel (no depende de un servidor
-   con disco persistente, que Vercel no ofrece). Misma interfaz que
-   antes (all/get/add/remove/removeSample) para no tocar el resto
-   de app.js.
+   Almacén de identidades — API + Neon PostgreSQL.
+   Mantiene la misma interfaz usada por app.js.
    ============================================================ */
-const Store = (() => {
-  const DB_NAME = 'faceauthedu';
-  const DB_VERSION = 1;
-  const STORE = 'people';
-  let dbPromise = null;
 
-  function openDB() {
-    if (dbPromise) return dbPromise;
-    dbPromise = new Promise((resolve, reject) => {
-      const req = indexedDB.open(DB_NAME, DB_VERSION);
-      req.onupgradeneeded = () => { if (!req.result.objectStoreNames.contains(STORE)) req.result.createObjectStore(STORE, { keyPath: 'id' }); };
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error || new Error('No se pudo abrir el almacenamiento del navegador.'));
-    });
-    return dbPromise;
+const Store = (() => {
+
+  const API = '/api/persons';
+
+  function normalizePerson(person) {
+    return {
+      id: person.id,
+      name: person.name,
+      code: person.code || '',
+      career: person.career || '',
+      avatar: person.avatar || null,
+      createdAt: person.createdAt,
+      samples: Array.isArray(person.samples)
+        ? person.samples.map(sample => ({
+            photo: sample.photo,
+            descriptor: Array.isArray(sample.descriptor)
+              ? sample.descriptor
+              : []
+          }))
+        : []
+    };
   }
-  async function tx(mode) { const db = await openDB(); return db.transaction(STORE, mode).objectStore(STORE); }
-  const genId = () => `p_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+
+  async function request(url, options = {}) {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(options.headers || {})
+      }
+    });
+
+    const body = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(
+        body.error || 'No se pudo completar la operación.'
+      );
+    }
+
+    return body;
+  }
+
+  const genId = () =>
+    `p_${Date.now().toString(36)}${Math.random()
+      .toString(36)
+      .slice(2, 8)}`;
 
   return {
+
     async all() {
-      const store = await tx('readonly');
-      return new Promise((resolve, reject) => {
-        const req = store.getAll();
-        req.onsuccess = () => resolve(req.result.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))));
-        req.onerror = () => reject(req.error);
-      });
+      const people = await request(API);
+      return people.map(normalizePerson);
     },
+
     async get(id) {
-      const store = await tx('readonly');
-      return new Promise((resolve, reject) => {
-        const req = store.get(id);
-        req.onsuccess = () => req.result ? resolve(req.result) : reject(new Error('No se encontró la persona solicitada.'));
-        req.onerror = () => reject(req.error);
-      });
+      const person = await request(
+        `${API}/${encodeURIComponent(id)}`
+      );
+
+      return normalizePerson(person);
     },
+
     async add(person) {
+
       const name = String(person.name || '').trim();
-      const samples = Array.isArray(person.samples) ? person.samples : [];
-      if (!name || name.length > 100) throw new Error('Ingresa un nombre válido.');
-      if (samples.length < 3 || samples.length > 12) throw new Error('El registro requiere entre 3 y 12 muestras faciales.');
-      for (const sample of samples) {
-        if (!sample.photo || !Array.isArray(sample.descriptor) || sample.descriptor.length !== 128) throw new Error('Una muestra facial no tiene un formato válido.');
+
+      const samples = Array.isArray(person.samples)
+        ? person.samples
+        : [];
+
+      if (!name || name.length > 100) {
+        throw new Error('Ingresa un nombre válido.');
       }
+
+      if (samples.length < 3 || samples.length > 12) {
+        throw new Error(
+          'El registro requiere entre 3 y 12 muestras faciales.'
+        );
+      }
+
+      for (const sample of samples) {
+        if (
+          !sample.photo ||
+          !Array.isArray(sample.descriptor) ||
+          sample.descriptor.length !== 128
+        ) {
+          throw new Error(
+            'Una muestra facial no tiene un formato válido.'
+          );
+        }
+      }
+
       const record = {
-        id: genId(), name, code: String(person.code || '').trim().slice(0, 60), career: String(person.career || '').trim().slice(0, 100),
-        samples, avatar: samples[0].photo, createdAt: new Date().toISOString(),
+        id: genId(),
+        name,
+        code: String(person.code || '')
+          .trim()
+          .slice(0, 60),
+        career: String(person.career || '')
+          .trim()
+          .slice(0, 100),
+        samples
       };
-      const store = await tx('readwrite');
-      return new Promise((resolve, reject) => { const req = store.add(record); req.onsuccess = () => resolve(record); req.onerror = () => reject(req.error); });
+
+      const saved = await request(API, {
+        method: 'POST',
+        body: JSON.stringify(record)
+      });
+
+      return normalizePerson(saved);
     },
+
     async remove(id) {
-      const store = await tx('readwrite');
-      return new Promise((resolve, reject) => { const req = store.delete(id); req.onsuccess = () => resolve(); req.onerror = () => reject(req.error); });
+      await request(
+        `${API}/${encodeURIComponent(id)}`,
+        {
+          method: 'DELETE'
+        }
+      );
     },
+
     async removeSample(id, index) {
-      const person = await this.get(id);
-      if (!Number.isInteger(index) || index < 0 || index >= person.samples.length) throw new Error('Muestra inválida.');
-      if (person.samples.length <= 3) throw new Error('Conserva al menos tres muestras para mantener un registro fiable.');
-      person.samples.splice(index, 1);
-      person.avatar = person.samples[0].photo;
-      const store = await tx('readwrite');
-      return new Promise((resolve, reject) => { const req = store.put(person); req.onsuccess = () => resolve(person); req.onerror = () => reject(req.error); });
-    },
+
+      const person = await request(
+        `${API}/${encodeURIComponent(id)}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify({
+            action: 'removeSample',
+            index
+          })
+        }
+      );
+
+      return normalizePerson(person);
+    }
+
   };
+
 })();
