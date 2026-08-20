@@ -9,5 +9,5 @@ if not exist node_modules (
 echo  FaceAuthEdu se iniciara en http://localhost:8000
 echo  Deja esta ventana abierta mientras uses la aplicacion.
 echo.
-node server.js
+node local-server.js
 pause
