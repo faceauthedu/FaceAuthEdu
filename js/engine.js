@@ -152,8 +152,9 @@ const Store = (() => {
 
   return {
 
-    async all() {
-      const people = await request(API);
+    async all(options = {}) {
+      const query = options.descriptorsOnly ? '?mode=descriptors' : '';
+      const people = await request(API + query);
       return people.map(normalizePerson);
     },
 

@@ -41,6 +41,8 @@ Abre `http://localhost:8000` en Chrome o Edge y autoriza la cámara. No abras `i
 
 Si cambias el correo del formulario de contacto más adelante, solo actualiza esas dos variables de entorno en Vercel — no hace falta tocar código.
 
+La ruta `GET /api/security-status` permite verificar el estado sin devolver fotos ni claves. La interfaz muestra `Cifrado verificado · AES-256-GCM` cuando todos los registros comprobados están cifrados. Configura `BIOMETRIC_ENCRYPTION_KEY` explícitamente en Vercel; si falta, el proyecto usa temporalmente `DATABASE_URL` como respaldo para no dejar inaccesibles los datos existentes.
+
 ## Activar el correo automático del formulario
 
 El formulario de "Solicita información" envía un correo a quien lo llena (y una copia interna a tu Gmail), usando tu propia cuenta de Gmail vía `nodemailer`.

@@ -23,7 +23,12 @@ function normalizePerson(row, samples) {
 export default async function handler(req, res) {
   try {
     if (req.method === 'GET') {
-      const people = await sql`
+      const descriptorsOnly = req.query?.mode === 'descriptors';
+      const people = descriptorsOnly ? await sql`
+        SELECT id, name, code, career, NULL AS avatar, created_at
+        FROM people
+        ORDER BY created_at DESC
+      ` : await sql`
         SELECT
           id,
           name,
@@ -35,7 +40,11 @@ export default async function handler(req, res) {
         ORDER BY created_at DESC
       `;
 
-      const samples = await sql`
+      const samples = descriptorsOnly ? await sql`
+        SELECT person_id, NULL AS photo, descriptor
+        FROM samples
+        ORDER BY id ASC
+      ` : await sql`
         SELECT
           person_id,
           photo,

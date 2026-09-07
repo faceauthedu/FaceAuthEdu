@@ -6,7 +6,13 @@ import { fileURLToPath } from 'node:url';
 
 import { sendContactEmail, isEmail } from './lib/mailer.js';
 import { sql } from './lib/db.js';
-import { decryptValue, encryptValue } from './lib/biometric-crypto.js';
+import {
+  decryptValue,
+  encryptValue,
+  encryptionAlgorithm,
+  hasExplicitEncryptionKey,
+  isEncryptedValue
+} from './lib/biometric-crypto.js';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 
@@ -60,9 +66,13 @@ async function body(req) {
    PERSONAS
    ============================================================ */
 
-async function getAllPeople() {
+async function getAllPeople(descriptorsOnly = false) {
 
-  const people = await sql`
+  const people = descriptorsOnly ? await sql`
+    SELECT id, name, code, career, NULL AS avatar, created_at
+    FROM people
+    ORDER BY created_at DESC
+  ` : await sql`
     SELECT
       id,
       name,
@@ -74,7 +84,11 @@ async function getAllPeople() {
     ORDER BY created_at DESC
   `;
 
-  const samples = await sql`
+  const samples = descriptorsOnly ? await sql`
+    SELECT person_id, NULL AS photo, descriptor
+    FROM samples
+    ORDER BY id ASC
+  ` : await sql`
     SELECT
       person_id,
       photo,
@@ -309,7 +323,25 @@ async function removeSample(id, index) {
    API
    ============================================================ */
 
-async function api(req, res, pathname) {
+async function api(req, res, pathname, query = new URLSearchParams()) {
+
+  if (req.method === 'GET' && pathname === '/api/security-status') {
+    const rows = await sql`
+      SELECT photo, descriptor
+      FROM samples
+      LIMIT 50
+    `;
+    const encrypted = rows.filter(row =>
+      isEncryptedValue(row.photo) && isEncryptedValue(row.descriptor)
+    ).length;
+    return send(res, 200, {
+      enabled: rows.length === 0 || encrypted === rows.length,
+      algorithm: encryptionAlgorithm,
+      explicitKeyConfigured: hasExplicitEncryptionKey,
+      recordsChecked: rows.length,
+      encryptedRecords: encrypted
+    });
+  }
 
   /* ---------------- CONTACTO ---------------- */
 
@@ -378,7 +410,7 @@ async function api(req, res, pathname) {
     pathname === '/api/persons'
   ) {
 
-    const people = await getAllPeople();
+    const people = await getAllPeople(query.get('mode') === 'descriptors');
 
     return send(res, 200, people);
   }
@@ -517,7 +549,8 @@ const server = http.createServer(
         return await api(
           req,
           res,
-          url.pathname
+          url.pathname,
+          url.searchParams
         );
       }
 

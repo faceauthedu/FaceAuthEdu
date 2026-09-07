@@ -290,3 +290,33 @@ body{background:
   .camera-shell{max-height:62svh}
 }
 @media(prefers-reduced-motion:reduce){.scan-beam,.face-guide i,.face-guide::before,.face-guide.ready::after{animation:none}.button:hover,.feature-card:hover{transform:none}}
+
+/* Portada glass: capas translúcidas, reflejos y profundidad inspirada en interfaces móviles. */
+body{font-family:"Avenir Next","Segoe UI",sans-serif;background:#f7f8fc;color:#14151b}
+.nav{background:rgba(255,255,255,.58);border-bottom-color:rgba(255,255,255,.8);box-shadow:0 10px 36px rgba(45,37,72,.08)}
+.hero{background:linear-gradient(135deg,#fff 0%,#f5f1ff 48%,#ffeef5 100%);isolation:isolate}
+.hero::before{content:"";position:absolute;inset:0;z-index:-1;opacity:.34;background-image:linear-gradient(rgba(255,255,255,.7) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.7) 1px,transparent 1px);background-size:42px 42px;mask-image:linear-gradient(to bottom,black,transparent 82%)}
+.hero::after{content:"";position:absolute;z-index:-1;width:52vw;height:52vw;right:-15vw;top:4%;border:1px solid rgba(255,255,255,.8);border-radius:42% 58% 65% 35% / 45% 38% 62% 55%;box-shadow:inset 0 0 80px rgba(255,255,255,.5),0 0 90px rgba(233,22,100,.1);animation:liquidFloat 12s ease-in-out infinite}
+.hero-content{animation:glassRise .75s cubic-bezier(.2,.8,.2,1) both}
+.hero-visual{animation:glassRise .85s .08s cubic-bezier(.2,.8,.2,1) both}
+.scan-card,.feature-card,.metric-card,.testimonial-slide,.contact-form{background:linear-gradient(135deg,rgba(255,255,255,.72),rgba(255,255,255,.36));border-color:rgba(255,255,255,.78);backdrop-filter:blur(26px) saturate(130%);-webkit-backdrop-filter:blur(26px) saturate(130%);box-shadow:0 22px 65px rgba(48,31,81,.12),inset 0 1px 0 rgba(255,255,255,.9)}
+.scan-card{border-radius:32px;transform:rotate(1deg);animation:cardFloat 7s ease-in-out infinite}
+.button{border-radius:16px;position:relative;overflow:hidden;background-size:220% 100%;transition:background-position .45s ease,transform .2s,box-shadow .2s}
+.button.dark{background-image:linear-gradient(90deg,#17151d 0%,#17151d 50%,#ec246c 50%,#ff82aa 100%);background-position:0 0}
+.button.dark:hover{background-position:100% 0;color:#fff}
+.button.pink{background-image:linear-gradient(90deg,#e91664 0%,#e91664 50%,#17151d 50%,#332b3a 100%);background-position:0 0}
+.button.pink:hover{background-position:100% 0}
+.button.light{background:rgba(255,255,255,.62);border-color:rgba(255,255,255,.95);box-shadow:inset 0 1px 0 #fff}
+.button.light:hover{background:rgba(255,255,255,.92);box-shadow:0 12px 30px rgba(52,33,78,.14)}
+.glass-pill,.pill{background:rgba(255,255,255,.58);border-color:rgba(255,255,255,.9);box-shadow:inset 0 1px 0 #fff,0 8px 24px rgba(73,35,88,.08);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.feature-card,.metric-card,.testimonial-slide{border-radius:28px}
+.scan-top,.scan-user{background:rgba(255,255,255,.48);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px)}
+.scan-beam{box-shadow:0 0 24px 4px rgba(255,54,130,.55)}
+.scan-hint{display:flex;align-items:center;gap:8px;margin:12px 0 16px;padding:11px 14px;border:1px solid rgba(233,22,100,.15);border-radius:16px;background:rgba(255,255,255,.58);color:#665e69;font-size:12px;line-height:1.4;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.security-status{display:block;margin-top:13px;color:#988f9b;font-size:11px}.security-status.is-ok{color:#23a56d}
+@keyframes glassRise{from{opacity:0;transform:translateY(18px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes liquidFloat{0%,100%{transform:rotate(0deg) translate3d(0,0,0)}50%{transform:rotate(8deg) translate3d(-18px,16px,0)}}
+@keyframes cardFloat{0%,100%{translate:0 0}50%{translate:0 -9px}}
+@media(max-width:720px){.hero{min-height:auto;padding-top:34px}.hero::after{width:90vw;height:90vw;right:-40vw;top:28%}.scan-card{border-radius:24px}.button{border-radius:15px}.scan-hint{font-size:11px}}
+@media(max-width:720px){html,body,main{overflow-x:hidden;max-width:100%}.feature-grid,.metric-grid{min-width:0}.feature-card,.metric-card{min-width:0}.laptop{transform:scale(.84);transform-origin:center}}
+@media(prefers-reduced-motion:reduce){.hero-content,.hero-visual,.hero::after,.scan-card{animation:none}}

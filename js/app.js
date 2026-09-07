@@ -78,6 +78,24 @@ async function updateCameraGuide(video, canvas, guide) {
     cameraGuideBusy = false;
   }
 }
+function updateGuideFromAnalysis(video, canvas, guide, analysis) {
+  if (!canvas || !analysis) return;
+  if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+  }
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!analysis.result) {
+    guide?.classList.remove('ready');
+    return;
+  }
+  const box = analysis.result.detection.box;
+  ctx.strokeStyle = '#39d98a';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(box.x, box.y, box.width, box.height);
+  guide?.classList.add('ready');
+}
 function toast(message, type = '') {
   document.querySelector('.toast')?.remove();
   const notice = document.createElement('div'); notice.className = `toast ${type}`; notice.textContent = message;
@@ -89,14 +107,34 @@ function restartIdentify() { location.hash = '#/identify'; renderIdentify(); }
 function updatePrivacyCopy() {
   const heading = [...document.querySelectorAll('footer h4')].find(node => node.textContent === 'PRIVACIDAD');
   if (heading?.nextElementSibling) heading.nextElementSibling.textContent = 'Las fotos y vectores se cifran antes de guardarse en Neon. La comparación facial se ejecuta en el navegador.';
+  if (heading && !heading.parentElement.querySelector('.security-status')) {
+    const status = document.createElement('small');
+    status.className = 'security-status';
+    status.textContent = 'Comprobando cifrado…';
+    heading.parentElement.append(status);
+    fetch('/api/security-status').then(response => response.json()).then(data => {
+      status.textContent = data.enabled
+        ? `Cifrado verificado · ${data.algorithm}`
+        : `Protección parcial · ${data.encryptedRecords}/${data.recordsChecked} registros cifrados`;
+      status.classList.toggle('is-ok', data.enabled);
+    }).catch(() => { status.textContent = 'Estado de cifrado no disponible'; });
+  }
   document.querySelectorAll('.privacy-card b').forEach(node => { node.textContent = 'Cifrado biométrico activo'; });
   document.querySelectorAll('.privacy-card b').forEach(node => { node.nextSibling.textContent = ' Las fotos y vectores se cifran con AES-256-GCM antes de guardarse en Neon. La comparación se realiza en este navegador.'; });
+}
+function addScanHint() {
+  const camera = document.querySelector('.verify-camera');
+  if (!camera || camera.nextElementSibling?.classList.contains('scan-hint')) return;
+  const hint = document.createElement('div');
+  hint.className = 'scan-hint';
+  hint.innerHTML = `${icon('camera', 16)} <span>Centra tu rostro, mantén la cabeza quieta y parpadea una vez cuando el marco se ponga verde.</span>`;
+  camera.after(hint);
 }
 
 window.addEventListener('hashchange', route);
 window.addEventListener('DOMContentLoaded', async () => { route(); Engine.loadModels().catch(() => toast('No se pudieron cargar los modelos de reconocimiento.', 'error')); });
 async function route() {
-  stopCamera(); verifyRunning = false;
+  stopCamera(); verifyRunning = false; identifyRunning = false;
   const parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
   const [page, id] = parts;
   if (!page) await renderLanding();
@@ -106,6 +144,7 @@ async function route() {
   else if (page === 'person' && id) await renderPerson(id);
   else if (page === 'verify' && id) await renderVerify(id);
   else await renderLanding();
+  addScanHint();
   updatePrivacyCopy();
   window.scrollTo(0, 0);
 }
@@ -384,25 +423,27 @@ async function startIdentify() {
   try {
     if (!navigator.mediaDevices?.getUserMedia) throw new Error('Este navegador no admite cámara.');
     currentStream = await navigator.mediaDevices.getUserMedia(cameraConstraints());
-    const video = document.getElementById('video'); if (!video || loopId !== cameraLoop) return; video.srcObject = currentStream; await video.play(); await Engine.loadModels(); identifyRunning = true; drawVerifyLoop(loopId); status.textContent = 'Ubica un solo rostro dentro del marco y parpadea con naturalidad…'; runIdentify(video);
+    const video = document.getElementById('video'); if (!video || loopId !== cameraLoop) return; video.srcObject = currentStream; await video.play(); await Engine.loadModels(); identifyRunning = true; status.textContent = 'Centra tu rostro y parpadea una vez cuando aparezca el marco verde.'; runIdentify(video);
   } catch (error) { status.innerHTML = `<b>No pudimos activar la cámara.</b> ${e(cameraMessage(error))}`; }
 }
 async function runIdentify(video) {
   const status = document.getElementById('verifyStatus'), progress = document.getElementById('verifyProgress'), livenessFill = document.getElementById('livenessFill');
+  const canvas = document.getElementById('overlay'), guide = document.getElementById('faceGuide');
   setVerifyStep(1, 'active'); progress.style.width = '12%';
   const descriptors = []; const earSamples = []; const started = performance.now(); let blinked = false;
-  while (identifyRunning && performance.now() - started < 13000 && !(descriptors.length >= 3 && blinked)) {
+  while (identifyRunning && performance.now() - started < 8000 && !(descriptors.length >= 3 && blinked)) {
     if (video.readyState >= 2) {
       const analysis = await Engine.analyze(video);
+      updateGuideFromAnalysis(video, canvas, guide, analysis);
       if (analysis.result) earSamples.push(Engine.earFromLandmarks(analysis.result.landmarks));
       if (!blinked && Engine.blinkDetected(earSamples)) blinked = true;
       if (livenessFill) livenessFill.style.width = Math.min(100, Math.round((Engine.earRange(earSamples) / 0.035) * 100)) + '%';
       if (analysis.result && analysis.coverage >= .13 && descriptors.length < 3) { descriptors.push(analysis.result.descriptor); progress.style.width = `${12 + descriptors.length * 16}%`; }
       status.textContent = descriptors.length < 3
-        ? `Rostro estable detectado (${descriptors.length}/3)… mira a la cámara con naturalidad`
+        ? `Rostro detectado (${descriptors.length}/3). Mantente quieto y parpadea una vez.`
         : (blinked ? 'Prueba de vida confirmada ✓ finalizando…' : 'Listo, confirmando que hay una persona real…');
     }
-    await new Promise(resolve => setTimeout(resolve, 320));
+    await new Promise(resolve => setTimeout(resolve, 100));
   }
   if (!identifyRunning) return;
   if (descriptors.length < 3) return showIdentifyResult(null, null, 'No pudimos obtener tres lecturas estables. Revisa la iluminación y mantén un solo rostro en cámara.');
@@ -410,7 +451,7 @@ async function runIdentify(video) {
   setVerifyStep(1, 'done'); setVerifyStep(2, 'active'); progress.style.width = '55%'; status.textContent = 'Extrayendo patrón biométrico…'; await new Promise(resolve => setTimeout(resolve, 380));
   setVerifyStep(2, 'done'); setVerifyStep(3, 'active'); progress.style.width = '78%'; status.textContent = 'Buscando en el directorio…';
   let people = [];
-  try { people = await Store.all(); } catch (error) { return showIdentifyResult(null, null, error.message); }
+  try { people = await Store.all({ descriptorsOnly: true }); } catch (error) { return showIdentifyResult(null, null, error.message); }
   let best = { person: null, distance: Infinity };
   for (const candidate of people) { const distance = descriptors.reduce((sum, d) => sum + Engine.distanceAgainstPerson(d, candidate), 0) / descriptors.length; if (distance < best.distance) best = { person: candidate, distance }; }
   await new Promise(resolve => setTimeout(resolve, 350));
@@ -438,24 +479,25 @@ async function startVerification(person) {
   try {
     if (!navigator.mediaDevices?.getUserMedia) throw new Error('Este navegador no admite cámara.');
     currentStream = await navigator.mediaDevices.getUserMedia(cameraConstraints());
-    const video = document.getElementById('video'); if (!video || loopId !== cameraLoop) return; video.srcObject = currentStream; await video.play(); await Engine.loadModels(); verifyRunning = true; drawVerifyLoop(loopId); status.textContent = 'Ubica un solo rostro dentro del marco y parpadea con naturalidad…'; runVerification(video, person);
+    const video = document.getElementById('video'); if (!video || loopId !== cameraLoop) return; video.srcObject = currentStream; await video.play(); await Engine.loadModels(); verifyRunning = true; status.textContent = 'Centra tu rostro y parpadea una vez cuando aparezca el marco verde.'; runVerification(video, person);
   } catch (error) { status.innerHTML = `<b>No pudimos activar la cámara.</b> ${e(cameraMessage(error))}`; }
 }
 async function drawVerifyLoop(loopId) { const video = document.getElementById('video'), canvas = document.getElementById('overlay'), guide = document.getElementById('faceGuide'); if (!video || loopId !== cameraLoop) return; await updateCameraGuide(video, canvas, guide); if (loopId === cameraLoop) requestAnimationFrame(() => drawVerifyLoop(loopId)); }
 async function runVerification(video, person) {
-  const status = document.getElementById('verifyStatus'), progress = document.getElementById('verifyProgress'), livenessFill = document.getElementById('livenessFill'); setVerifyStep(1, 'active'); progress.style.width = '12%'; const descriptors = []; const earSamples = []; const started = performance.now(); let blinked = false;
-  while (verifyRunning && performance.now() - started < 13000 && !(descriptors.length >= 3 && blinked)) {
+  const status = document.getElementById('verifyStatus'), progress = document.getElementById('verifyProgress'), livenessFill = document.getElementById('livenessFill'); const canvas = document.getElementById('overlay'), guide = document.getElementById('faceGuide'); setVerifyStep(1, 'active'); progress.style.width = '12%'; const descriptors = []; const earSamples = []; const started = performance.now(); let blinked = false;
+  while (verifyRunning && performance.now() - started < 8000 && !(descriptors.length >= 3 && blinked)) {
     if (video.readyState >= 2) {
       const analysis = await Engine.analyze(video);
+      updateGuideFromAnalysis(video, canvas, guide, analysis);
       if (analysis.result) earSamples.push(Engine.earFromLandmarks(analysis.result.landmarks));
       if (!blinked && Engine.blinkDetected(earSamples)) blinked = true;
       if (livenessFill) livenessFill.style.width = Math.min(100, Math.round((Engine.earRange(earSamples) / 0.035) * 100)) + '%';
       if (analysis.result && analysis.coverage >= .13 && descriptors.length < 3) { descriptors.push(analysis.result.descriptor); progress.style.width = `${12 + descriptors.length * 16}%`; }
       status.textContent = descriptors.length < 3
-        ? `Rostro estable detectado (${descriptors.length}/3)… mira a la cámara con naturalidad`
+        ? `Rostro detectado (${descriptors.length}/3). Mantente quieto y parpadea una vez.`
         : (blinked ? 'Prueba de vida confirmada ✓ finalizando…' : 'Listo, confirmando que hay una persona real…');
     }
-    await new Promise(resolve => setTimeout(resolve, 320));
+    await new Promise(resolve => setTimeout(resolve, 100));
   }
   if (!verifyRunning) return;
   if (descriptors.length < 3) return showVerificationResult(person, null, false, 'No pudimos obtener tres lecturas estables. Revisa la iluminación y mantén un solo rostro en cámara.');
