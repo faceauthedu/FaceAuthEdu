@@ -320,3 +320,37 @@ body{font-family:"Avenir Next","Segoe UI",sans-serif;background:#f7f8fc;color:#1
 @media(max-width:720px){.hero{min-height:auto;padding-top:34px}.hero::after{width:90vw;height:90vw;right:-40vw;top:28%}.scan-card{border-radius:24px}.button{border-radius:15px}.scan-hint{font-size:11px}}
 @media(max-width:720px){html,body,main{overflow-x:hidden;max-width:100%}.feature-grid,.metric-grid{min-width:0}.feature-card,.metric-card{min-width:0}.laptop{transform:scale(.84);transform-origin:center}}
 @media(prefers-reduced-motion:reduce){.hero-content,.hero-visual,.hero::after,.scan-card{animation:none}}
+
+/* El color base permanece limpio; el color de acción entra solo al pasar el cursor. */
+.button{background-image:none!important;background-size:100% 100%;background-position:0 0;transition:background .45s ease,transform .2s,box-shadow .2s,color .2s}
+.button.dark{background-color:#17151d!important;background-image:linear-gradient(90deg,#ec246c,#ff82aa)!important;background-size:0% 100%;background-repeat:no-repeat;color:#fff}
+.button.dark:hover{background-size:100% 100%;background-position:0 0}
+.button.pink{background-color:#e91664!important;background-image:linear-gradient(90deg,#17151d,#332b3a)!important;background-size:0% 100%;background-repeat:no-repeat;color:#fff}
+.button.pink:hover{background-size:100% 100%;background-position:0 0}
+.button.light{background:rgba(255,255,255,.7)!important;color:#17151d}
+.button.light:hover{background:rgba(255,255,255,.96)!important}
+
+/* Reflejo glass visible, con borde interno y brillo que recorre las superficies. */
+.nav,.scan-card,.feature-card,.metric-card,.testimonial-slide,.contact-form,.form-card,.verify-card,.profile-card,.result-card{position:relative;overflow:hidden}
+.scan-card::after,.feature-card::after,.metric-card::after,.testimonial-slide::after,.contact-form::after,.form-card::after,.verify-card::after,.profile-card::after,.result-card::after{content:"";position:absolute;inset:0;pointer-events:none;border:1px solid rgba(255,255,255,.72);border-radius:inherit;background:linear-gradient(115deg,rgba(255,255,255,.22),transparent 28%,transparent 72%,rgba(255,255,255,.12));opacity:.8}
+.scan-card::before{content:"";position:absolute;z-index:2;top:-30%;left:-45%;width:28%;height:170%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.48),transparent);transform:rotate(18deg);animation:glassSheen 6s ease-in-out infinite;pointer-events:none}
+.scan-card>*{position:relative;z-index:3}
+@keyframes glassSheen{0%,42%{left:-45%;opacity:0}52%{opacity:1}68%,100%{left:125%;opacity:0}}
+@media(prefers-reduced-motion:reduce){.scan-card::before{animation:none}}
+
+/* Sistema glass global: todas las superficies comparten transparencia, borde de luz y profundidad. */
+.button,.capture-tabs button,.nav nav button,.nav-back,.icon-button,.carousel-arrow,.social-btn,.pill,.notice,.privacy-card,.panel-summary>div,.person-card,.empty-state,.loading-card,.upload-zone,.samples-empty,.verify-steps div,.liveness-meter,.match-box,.nearest-warning,.result-meta span,.contact-alternatives a{border:1px solid rgba(255,255,255,.68);background:rgba(255,255,255,.48);backdrop-filter:blur(18px) saturate(135%);-webkit-backdrop-filter:blur(18px) saturate(135%);box-shadow:inset 0 1px 0 rgba(255,255,255,.82),0 10px 28px rgba(47,32,70,.08)}
+.button{border-color:rgba(255,255,255,.42);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 10px 26px rgba(47,32,70,.14)}
+.button.dark{background-color:rgba(25,22,32,.76)!important;background-image:linear-gradient(90deg,rgba(236,36,108,.9),rgba(255,130,170,.82))!important;color:#fff}
+.button.pink{background-color:rgba(233,22,100,.78)!important;background-image:linear-gradient(90deg,rgba(25,22,32,.9),rgba(55,45,64,.84))!important;color:#fff}
+.button.light{background:rgba(255,255,255,.48)!important;color:#17151d}
+.button.dark:hover,.button.pink:hover{box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 14px 34px rgba(233,22,100,.22)}
+.capture-tabs{padding:6px;border-radius:20px;background:rgba(255,255,255,.3);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.capture-tabs button.active{background:rgba(255,255,255,.8);box-shadow:inset 0 1px 0 #fff,0 8px 20px rgba(47,32,70,.1)}
+.form-card input,.form-card textarea,.contact-form input,.contact-form textarea{background:rgba(255,255,255,.52);border-color:rgba(255,255,255,.82);box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 5px 16px rgba(47,32,70,.04);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.form-card input:focus,.form-card textarea:focus,.contact-form input:focus,.contact-form textarea:focus{background:rgba(255,255,255,.78);border-color:rgba(233,22,100,.5);box-shadow:0 0 0 3px rgba(233,22,100,.12),inset 0 1px 0 #fff}
+.person-card:hover,.carousel-arrow:hover,.icon-button:hover,.nav-back:hover,.contact-alternatives a:hover{background:rgba(255,255,255,.78);box-shadow:inset 0 1px 0 #fff,0 16px 34px rgba(47,32,70,.14)}
+.verify-steps div,.result-meta span{background:rgba(255,255,255,.34)}
+.verify-steps div.active{background:rgba(255,255,255,.76);box-shadow:inset 0 1px 0 #fff,0 8px 22px rgba(233,22,100,.12)}
+.metric-card small,.eyebrow{color:#9c5275}
+@media(prefers-reduced-transparency:reduce){.button,.capture-tabs button,.nav nav button,.nav-back,.icon-button,.carousel-arrow,.social-btn,.pill,.notice,.privacy-card,.panel-summary>div,.person-card,.empty-state,.loading-card,.upload-zone,.samples-empty,.verify-steps div,.liveness-meter,.match-box,.nearest-warning,.result-meta span,.contact-alternatives a{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(255,255,255,.92)}}
