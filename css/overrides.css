@@ -250,3 +250,43 @@ body{background:
 .liveness-meter span{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
 .liveness-meter i{display:block;height:6px;border-radius:99px;background:#efe6ea;overflow:hidden}
 .liveness-meter i em{display:block;height:100%;width:0%;border-radius:99px;background:linear-gradient(90deg,#f2a1b8,#22b476);transition:width .25s linear}
+
+/* Capa glass ligera y layout estable para cámara y pantallas pequeñas. */
+.nav{background:rgba(255,255,255,.78);border-color:rgba(233,22,100,.12);box-shadow:0 8px 26px rgba(65,20,38,.06)}
+.form-card,.verify-card,.profile-card,.result-card,.empty-state,.loading-card{background:rgba(255,255,255,.78);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border-color:rgba(255,255,255,.9);box-shadow:0 22px 60px rgba(65,20,38,.1)}
+.camera-shell{width:100%;aspect-ratio:4/3;overflow:hidden;border-radius:24px;background:#171217;isolation:isolate}
+.camera-shell video,.camera-shell canvas{display:block;width:100%;height:100%;object-fit:cover}
+.camera-shell canvas{position:absolute;inset:0;pointer-events:none}
+.testimonial-track{width:100%;min-width:0}
+.testimonial-slide{min-width:0;overflow:hidden}
+.face-guide{max-width:320px;max-height:320px}
+.verify-camera{margin-inline:auto}
+.button,.capture-tabs button,.nav-back,.icon-button{touch-action:manipulation}
+@media(max-width:720px){
+  .nav{height:62px;padding:0 16px;gap:10px}
+  .nav nav{display:none}
+  .nav-cta{margin-left:auto;min-height:40px;padding-inline:14px;font-size:12px}
+  .nav-back{font-size:12px;white-space:nowrap}
+  .wrap{width:min(100% - 32px,1190px)}
+  .workspace{padding-inline:16px}
+  .workspace-heading,.page-heading{padding-top:26px}
+  .workspace-heading{gap:18px;align-items:flex-start}
+  .heading-actions{width:100%}
+  .heading-actions .button{flex:1;min-width:0;padding-inline:12px;font-size:12px}
+  .form-card,.verify-card,.profile-card,.result-card{padding:18px 14px;border-radius:20px}
+  .camera-shell{border-radius:18px;aspect-ratio:3/4;max-height:68svh}
+  .face-guide{width:min(68vw,250px)}
+  .verify-steps{gap:4px}
+  .verify-steps span{font-size:10px;line-height:1.2;text-align:center}
+  .verify-steps i{width:25px;height:25px}
+  .capture-tabs{gap:6px}
+  .capture-tabs button{padding-inline:10px;font-size:12px}
+  .profile-actions{display:grid;grid-template-columns:1fr;gap:8px}
+  .result-actions{display:grid;grid-template-columns:1fr;gap:8px}
+}
+@media(max-width:380px){
+  .brand{font-size:18px}
+  .nav-cta{padding-inline:10px;font-size:11px}
+  .camera-shell{max-height:62svh}
+}
+@media(prefers-reduced-motion:reduce){.scan-beam,.face-guide i,.face-guide::before,.face-guide.ready::after{animation:none}.button:hover,.feature-card:hover{transform:none}}

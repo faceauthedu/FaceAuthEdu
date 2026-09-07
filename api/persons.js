@@ -1,4 +1,5 @@
 import { sql } from '../lib/db.js';
+import { decryptValue, encryptValue } from '../lib/biometric-crypto.js';
 
 function sendError(res, status, message) {
   return res.status(status).json({ error: message });
@@ -10,13 +11,11 @@ function normalizePerson(row, samples) {
     name: row.name,
     code: row.code || '',
     career: row.career || '',
-    avatar: row.avatar || null,
+    avatar: row.avatar ? decryptValue(row.avatar) : null,
     createdAt: row.created_at,
     samples: samples.map(sample => ({
-      photo: sample.photo,
-      descriptor: Array.isArray(sample.descriptor)
-        ? sample.descriptor
-        : []
+      photo: decryptValue(sample.photo),
+      descriptor: decryptValue(sample.descriptor) || []
     }))
   };
 }
@@ -120,7 +119,7 @@ export default async function handler(req, res) {
           ${name},
           ${code},
           ${career},
-          ${samples[0].photo}
+          ${encryptValue(samples[0].photo)}
         )
       `;
 
@@ -133,8 +132,8 @@ export default async function handler(req, res) {
           )
           VALUES (
             ${id},
-            ${sample.photo},
-            ${JSON.stringify(sample.descriptor)}::jsonb
+            ${encryptValue(sample.photo)},
+            ${encryptValue(sample.descriptor)}::jsonb
           )
         `;
       }

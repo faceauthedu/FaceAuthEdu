@@ -1,4 +1,5 @@
 import { sql } from '../../lib/db.js';
+import { decryptValue, encryptValue } from '../../lib/biometric-crypto.js';
 
 function sendError(res, status, message) {
   return res.status(status).json({ error: message });
@@ -36,13 +37,11 @@ async function getPerson(id) {
     name: people[0].name,
     code: people[0].code || '',
     career: people[0].career || '',
-    avatar: people[0].avatar || null,
+    avatar: people[0].avatar ? decryptValue(people[0].avatar) : null,
     createdAt: people[0].created_at,
     samples: samples.map(sample => ({
-      photo: sample.photo,
-      descriptor: Array.isArray(sample.descriptor)
-        ? sample.descriptor
-        : []
+      photo: decryptValue(sample.photo),
+      descriptor: decryptValue(sample.descriptor) || []
     }))
   };
 }
@@ -133,7 +132,7 @@ export default async function handler(req, res) {
 
       await sql`
         UPDATE people
-        SET avatar = ${remaining[0].photo}
+        SET avatar = ${encryptValue(decryptValue(remaining[0].photo))}
         WHERE id = ${id}
       `;
 

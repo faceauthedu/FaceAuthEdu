@@ -6,6 +6,7 @@ const Engine = (() => {
   let modelsReady = false;
 
   const options = () => new faceapi.TinyFaceDetectorOptions({ inputSize: 512, scoreThreshold: 0.55 });
+  const guideOptions = () => new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 });
 
   async function loadModels() {
     if (modelsReady) return;
@@ -31,7 +32,7 @@ const Engine = (() => {
   }
 
   async function detectOnly(input) {
-    const faces = await faceapi.detectAllFaces(input, options()).withFaceLandmarks();
+    const faces = await faceapi.detectAllFaces(input, guideOptions()).withFaceLandmarks();
     return faces;
   }
 

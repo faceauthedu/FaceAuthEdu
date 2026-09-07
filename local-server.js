@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 import { sendContactEmail, isEmail } from './lib/mailer.js';
 import { sql } from './lib/db.js';
+import { decryptValue, encryptValue } from './lib/biometric-crypto.js';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 
@@ -100,15 +101,13 @@ async function getAllPeople() {
     name: person.name,
     code: person.code || '',
     career: person.career || '',
-    avatar: person.avatar || null,
+    avatar: person.avatar ? decryptValue(person.avatar) : null,
     createdAt: person.created_at,
     samples: (
       samplesByPerson.get(person.id) || []
     ).map(sample => ({
-      photo: sample.photo,
-      descriptor: Array.isArray(sample.descriptor)
-        ? sample.descriptor
-        : []
+      photo: decryptValue(sample.photo),
+      descriptor: decryptValue(sample.descriptor) || []
     }))
   }));
 }
@@ -148,14 +147,12 @@ async function getPerson(id) {
     name: people[0].name,
     code: people[0].code || '',
     career: people[0].career || '',
-    avatar: people[0].avatar || null,
+    avatar: people[0].avatar ? decryptValue(people[0].avatar) : null,
     createdAt: people[0].created_at,
 
     samples: samples.map(sample => ({
-      photo: sample.photo,
-      descriptor: Array.isArray(sample.descriptor)
-        ? sample.descriptor
-        : []
+      photo: decryptValue(sample.photo),
+      descriptor: decryptValue(sample.descriptor) || []
     }))
   };
 }
@@ -218,7 +215,7 @@ async function addPerson(incoming) {
       ${name},
       ${code},
       ${career},
-      ${samples[0].photo}
+      ${encryptValue(samples[0].photo)}
     )
   `;
 
@@ -232,8 +229,8 @@ async function addPerson(incoming) {
       )
       VALUES (
         ${id},
-        ${sample.photo},
-        ${JSON.stringify(sample.descriptor)}::jsonb
+        ${encryptValue(sample.photo)},
+        ${encryptValue(sample.descriptor)}::jsonb
       )
     `;
   }
@@ -301,7 +298,7 @@ async function removeSample(id, index) {
 
   await sql`
     UPDATE people
-    SET avatar = ${remaining[0].photo}
+    SET avatar = ${encryptValue(decryptValue(remaining[0].photo))}
     WHERE id = ${id}
   `;
 

@@ -1,6 +1,8 @@
 const app = document.getElementById('app');
 let currentStream = null;
 let cameraLoop = 0;
+let cameraGuideBusy = false;
+let lastCameraGuideAt = 0;
 let enrollState = null;
 let verifyRunning = false;
 let sessionLog = [];
@@ -35,6 +37,46 @@ function stopCamera() {
   cameraLoop++;
   if (currentStream) currentStream.getTracks().forEach(track => track.stop());
   currentStream = null;
+  cameraGuideBusy = false;
+}
+
+function cameraConstraints() {
+  return {
+    audio: false,
+    video: {
+      facingMode: { ideal: 'user' },
+      width: { ideal: 640, max: 1280 },
+      height: { ideal: 480, max: 720 },
+      frameRate: { ideal: 24, max: 30 }
+    }
+  };
+}
+
+async function updateCameraGuide(video, canvas, guide) {
+  const now = performance.now();
+  if (cameraGuideBusy || now - lastCameraGuideAt < 120 || video.readyState < 2) return;
+  cameraGuideBusy = true;
+  lastCameraGuideAt = now;
+  try {
+    if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+    }
+    const faces = await Engine.detectOnly(video);
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (faces.length === 1) {
+      const box = faces[0].detection.box;
+      ctx.strokeStyle = '#39d98a';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(box.x, box.y, box.width, box.height);
+      guide?.classList.add('ready');
+    } else {
+      guide?.classList.remove('ready');
+    }
+  } finally {
+    cameraGuideBusy = false;
+  }
 }
 function toast(message, type = '') {
   document.querySelector('.toast')?.remove();
@@ -44,6 +86,12 @@ function toast(message, type = '') {
 function goHome(section) { location.hash = '#/'; setTimeout(() => document.getElementById(section)?.scrollIntoView({ behavior: 'smooth' }), 50); }
 function restartVerification(id) { location.hash = '#/verify/' + id; renderVerify(id); }
 function restartIdentify() { location.hash = '#/identify'; renderIdentify(); }
+function updatePrivacyCopy() {
+  const heading = [...document.querySelectorAll('footer h4')].find(node => node.textContent === 'PRIVACIDAD');
+  if (heading?.nextElementSibling) heading.nextElementSibling.textContent = 'Las fotos y vectores se cifran antes de guardarse en Neon. La comparación facial se ejecuta en el navegador.';
+  document.querySelectorAll('.privacy-card b').forEach(node => { node.textContent = 'Cifrado biométrico activo'; });
+  document.querySelectorAll('.privacy-card b').forEach(node => { node.nextSibling.textContent = ' Las fotos y vectores se cifran con AES-256-GCM antes de guardarse en Neon. La comparación se realiza en este navegador.'; });
+}
 
 window.addEventListener('hashchange', route);
 window.addEventListener('DOMContentLoaded', async () => { route(); Engine.loadModels().catch(() => toast('No se pudieron cargar los modelos de reconocimiento.', 'error')); });
@@ -58,6 +106,7 @@ async function route() {
   else if (page === 'person' && id) await renderPerson(id);
   else if (page === 'verify' && id) await renderVerify(id);
   else await renderLanding();
+  updatePrivacyCopy();
   window.scrollTo(0, 0);
 }
 
@@ -216,7 +265,7 @@ async function renderPanel() {
 }
 function emptyState() { return `<div class="empty-state"><div>${icon('users', 32)}</div><h2>Aún no hay identidades</h2><p>Comienza registrando fotos de una persona real con su consentimiento.</p><button class="button dark" onclick="location.hash='#/enroll'">Registrar primera identidad</button></div>`; }
 function personCard(person) { return `<article class="person-card"><button class="person-main" onclick="location.hash='#/person/${e(person.id)}'">${avatar(person)}<span><b>${e(person.name)}</b><small>${e(person.code || 'Sin código')} · ${e(person.career || 'Sin grupo')}</small><em>${person.samples.length} muestras</em></span></button><button class="verify-shortcut" title="Verificar identidad" onclick="location.hash='#/verify/${e(person.id)}'">${icon('scan', 19)}</button></article>`; }
-function renderServerError(error) { app.innerHTML = `${nav()}<main class="workspace"><div class="error-state"><div>${icon('close', 30)}</div><h1>No se pudo leer la base local</h1><p>${e(error.message)} Asegúrate de iniciar la aplicación con <code>node server.js</code>.</p><button class="button dark" onclick="route()">Reintentar</button></div></main>`; }
+function renderServerError(error) { app.innerHTML = `${nav()}<main class="workspace"><div class="error-state"><div>${icon('close', 30)}</div><h1>No se pudo leer la base local</h1><p>${e(error.message)} Asegúrate de iniciar la aplicación con <code>node local-server.js</code>.</p><button class="button dark" onclick="route()">Reintentar</button></div></main>`; }
 
 function renderEnroll() {
   enrollState = { mode: 'camera', samples: [], stage: 0, turn: 0, loading: false };
@@ -251,7 +300,7 @@ async function startEnrollCamera() {
   const status = document.getElementById('cameraStatus'); const loopId = ++cameraLoop;
   try {
     if (!navigator.mediaDevices?.getUserMedia) throw new Error('Este navegador no admite acceso a cámara.');
-    currentStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 960 }, height: { ideal: 720 } }, audio: false });
+    currentStream = await navigator.mediaDevices.getUserMedia(cameraConstraints());
     const video = document.getElementById('video'); if (!video || loopId !== cameraLoop) return;
     video.srcObject = currentStream; await video.play(); await Engine.loadModels(); status.textContent = 'Cámara lista. ' + challenge(); drawEnrollLoop(loopId);
   } catch (error) { status.innerHTML = `<b>No pudimos activar la cámara.</b> ${e(cameraMessage(error))}`; document.getElementById('captureButton').disabled = true; }
@@ -261,9 +310,7 @@ async function drawEnrollLoop(loopId) {
   const video = document.getElementById('video'), canvas = document.getElementById('overlay'), guide = document.getElementById('faceGuide');
   if (!video || loopId !== cameraLoop) return;
   if (video.readyState >= 2) {
-    canvas.width = video.videoWidth; canvas.height = video.videoHeight; const faces = await Engine.detectOnly(video); const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if (faces.length === 1) { const box = faces[0].detection.box; ctx.strokeStyle = '#39d98a'; ctx.lineWidth = 3; ctx.strokeRect(box.x, box.y, box.width, box.height); guide.classList.add('ready'); }
-    else guide.classList.remove('ready');
+    await updateCameraGuide(video, canvas, guide);
   }
   if (loopId === cameraLoop) requestAnimationFrame(() => drawEnrollLoop(loopId));
 }
@@ -336,7 +383,7 @@ async function startIdentify() {
   const status = document.getElementById('verifyStatus'); const loopId = ++cameraLoop;
   try {
     if (!navigator.mediaDevices?.getUserMedia) throw new Error('Este navegador no admite cámara.');
-    currentStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 960 }, height: { ideal: 720 } }, audio: false });
+    currentStream = await navigator.mediaDevices.getUserMedia(cameraConstraints());
     const video = document.getElementById('video'); if (!video || loopId !== cameraLoop) return; video.srcObject = currentStream; await video.play(); await Engine.loadModels(); identifyRunning = true; drawVerifyLoop(loopId); status.textContent = 'Ubica un solo rostro dentro del marco y parpadea con naturalidad…'; runIdentify(video);
   } catch (error) { status.innerHTML = `<b>No pudimos activar la cámara.</b> ${e(cameraMessage(error))}`; }
 }
@@ -390,11 +437,11 @@ async function startVerification(person) {
   const status = document.getElementById('verifyStatus'); const loopId = ++cameraLoop;
   try {
     if (!navigator.mediaDevices?.getUserMedia) throw new Error('Este navegador no admite cámara.');
-    currentStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 960 }, height: { ideal: 720 } }, audio: false });
+    currentStream = await navigator.mediaDevices.getUserMedia(cameraConstraints());
     const video = document.getElementById('video'); if (!video || loopId !== cameraLoop) return; video.srcObject = currentStream; await video.play(); await Engine.loadModels(); verifyRunning = true; drawVerifyLoop(loopId); status.textContent = 'Ubica un solo rostro dentro del marco y parpadea con naturalidad…'; runVerification(video, person);
   } catch (error) { status.innerHTML = `<b>No pudimos activar la cámara.</b> ${e(cameraMessage(error))}`; }
 }
-async function drawVerifyLoop(loopId) { const video = document.getElementById('video'), canvas = document.getElementById('overlay'), guide = document.getElementById('faceGuide'); if (!video || loopId !== cameraLoop) return; if (video.readyState >= 2) { canvas.width = video.videoWidth; canvas.height = video.videoHeight; const faces = await Engine.detectOnly(video); const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height); if (faces.length === 1) { const box = faces[0].detection.box; ctx.strokeStyle = '#39d98a'; ctx.lineWidth = 3; ctx.strokeRect(box.x, box.y, box.width, box.height); guide?.classList.add('ready'); } else guide?.classList.remove('ready'); } if (loopId === cameraLoop) requestAnimationFrame(() => drawVerifyLoop(loopId)); }
+async function drawVerifyLoop(loopId) { const video = document.getElementById('video'), canvas = document.getElementById('overlay'), guide = document.getElementById('faceGuide'); if (!video || loopId !== cameraLoop) return; await updateCameraGuide(video, canvas, guide); if (loopId === cameraLoop) requestAnimationFrame(() => drawVerifyLoop(loopId)); }
 async function runVerification(video, person) {
   const status = document.getElementById('verifyStatus'), progress = document.getElementById('verifyProgress'), livenessFill = document.getElementById('livenessFill'); setVerifyStep(1, 'active'); progress.style.width = '12%'; const descriptors = []; const earSamples = []; const started = performance.now(); let blinked = false;
   while (verifyRunning && performance.now() - started < 13000 && !(descriptors.length >= 3 && blinked)) {
