@@ -154,7 +154,13 @@ const Store = (() => {
 
     async all(options = {}) {
       const query = options.descriptorsOnly ? '?mode=descriptors' : '';
-      const people = await request(API + query);
+      const payload = await request(API + query);
+      const people = Array.isArray(payload) ? payload : payload?.people;
+
+      if (!Array.isArray(people)) {
+        throw new Error('La API devolvió un formato de personas inválido.');
+      }
+
       return people.map(normalizePerson);
     },
 

@@ -409,10 +409,16 @@ async function api(req, res, pathname, query = new URLSearchParams()) {
     req.method === 'GET' &&
     pathname === '/api/persons'
   ) {
+    try {
+      const people = await getAllPeople(query.get('mode') === 'descriptors');
 
-    const people = await getAllPeople(query.get('mode') === 'descriptors');
-
-    return send(res, 200, people);
+      return send(res, 200, people);
+    } catch (error) {
+      console.error('GET /api/persons:', error);
+      return send(res, 500, {
+        error: error.message || 'No se pudo leer la base de datos.'
+      });
+    }
   }
 
   if (

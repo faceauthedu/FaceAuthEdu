@@ -304,7 +304,7 @@ async function renderPanel() {
 }
 function emptyState() { return `<div class="empty-state"><div>${icon('users', 32)}</div><h2>Aún no hay identidades</h2><p>Comienza registrando fotos de una persona real con su consentimiento.</p><button class="button dark" onclick="location.hash='#/enroll'">Registrar primera identidad</button></div>`; }
 function personCard(person) { return `<article class="person-card"><button class="person-main" onclick="location.hash='#/person/${e(person.id)}'">${avatar(person)}<span><b>${e(person.name)}</b><small>${e(person.code || 'Sin código')} · ${e(person.career || 'Sin grupo')}</small><em>${person.samples.length} muestras</em></span></button><button class="verify-shortcut" title="Verificar identidad" onclick="location.hash='#/verify/${e(person.id)}'">${icon('scan', 19)}</button></article>`; }
-function renderServerError(error) { app.innerHTML = `${nav()}<main class="workspace"><div class="error-state"><div>${icon('close', 30)}</div><h1>No se pudo leer la base local</h1><p>${e(error.message)} Asegúrate de iniciar la aplicación con <code>node local-server.js</code>.</p><button class="button dark" onclick="route()">Reintentar</button></div></main>`; }
+function renderServerError(error) { app.innerHTML = `${nav()}<main class="workspace"><div class="error-state"><div>${icon('close', 30)}</div><h1>No se pudo leer la base de datos</h1><p>${e(error.message)} Comprueba la conexión con el servicio y vuelve a intentarlo.</p><button class="button dark" onclick="route()">Reintentar</button></div></main>`; }
 
 function renderEnroll() {
   enrollState = { mode: 'camera', samples: [], stage: 0, turn: 0, loading: false };
