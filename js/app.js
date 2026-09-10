@@ -27,7 +27,7 @@ function icon(name, size = 20) {
     dots: '<circle cx="5" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="19" cy="12" r="1" fill="currentColor"/>',
     whatsapp: '<path d="M20.5 11.6a8.5 8.5 0 0 1-12.55 7.48L3.5 20.5l1.42-4.14A8.5 8.5 0 1 1 20.5 11.6Z"/><path d="M9.2 7.7c.17-.4.35-.44.66-.44h.5c.18 0 .34.03.43.25l.78 1.84c.1.23.07.47-.07.66l-.48.62c-.12.15-.1.35.02.49.38.43.86.89 1.46 1.25.62.37 1.2.6 1.73.71.19.04.37-.03.49-.18l.52-.68c.15-.2.4-.26.62-.16l1.75.8c.22.1.33.29.3.52-.1.8-.47 1.42-1.08 1.7-.48.22-1.1.22-1.77.05-1.07-.26-2.2-.85-3.27-1.82-1.05-.95-1.8-2.05-2.17-3.1-.22-.67-.25-1.3.02-1.82.18-.36.46-.62.76-.78Z" fill="currentColor" stroke="none"/>',
     instagram: '<rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="3.6"/><circle cx="17" cy="7" r="1" fill="currentColor" stroke="none"/>',
-    mail: '<path d="M3.5 6.25v11.5h17V6.25"/><path d="m3.5 6.25 8.5 6.5 8.5-6.5"/><path d="m3.5 17.75 6.4-5.45M20.5 17.75l-6.4-5.45"/><path d="M3.5 17.75h17"/>',
+    mail: '<path d="M3.5 6.25h17v11.5h-17z"/><path d="m3.5 6.25 8.5 6.5 8.5-6.5"/>',
     spark: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/>',
     userSearch: '<circle cx="10" cy="8" r="3.5"/><path d="M4 20c.6-3 2.9-4.6 6-4.6"/><circle cx="17" cy="16.5" r="3"/><path d="m20.5 20-1.6-1.6"/>',
   };
@@ -221,7 +221,7 @@ async function sendContact(event) {
     if (!response.ok) throw new Error(body.error || 'No se pudo enviar el correo.');
     toast(`Listo, revisa ${payload.email} — te escribimos con la información.`);
     document.getElementById('contactForm').reset();
-    submit.textContent = `Enviado ${icon('check', 15)}`;
+    submit.innerHTML = `Enviado ${icon('check', 15)}`;
     setTimeout(() => { submit.disabled = false; submit.innerHTML = `Enviar y recibir por correo ${icon('mail',17)}`; }, 2600);
   } catch (error) {
     toast(error.message + ' Puedes escribirnos por WhatsApp mientras tanto.', 'error');
